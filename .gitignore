@@ -1,0 +1,11 @@
+# Ignore the virtual env folder
+vectorSrvEnv/
+env/
+__pycache__/
+
+# Ignore the libraries
+library/
+
+*.env
+*.env.local
+*.vscode
