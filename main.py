@@ -1,13 +1,16 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, File, UploadFile
+from typing import Annotated
 from ray import serve
 import cv2
 import numpy as np
-from fastapi import UploadFile, status, Response
+from fastapi import status, Response
 from MLmodels.singleFace.embedding_gen import get_embedding_vector
 from dotenv import load_dotenv
+import os
 
 
 app = FastAPI()
+
 
 @serve.deployment
 @serve.ingress(app)
@@ -20,26 +23,29 @@ class faceEmbedingGenModel:
         return {"message": "hello from '/"}
 
     @app.post("/face-embedding/", status_code=200)
-    async def getFaceEmbeding(self, imageFile: UploadFile, response: Response):
+    async def getFaceEmbeding(
+        self, raw_image: Annotated[UploadFile, File()], response: Response
+    ):
         try:
-            contents = await imageFile.read()
+            contents = await raw_image.read()
             toNpArr = np.frombuffer(contents, np.uint8)
             # Decode the NumPy array as an image using OpenCV
             img = cv2.imdecode(toNpArr, cv2.IMREAD_COLOR)
-            emb_vector = get_embedding_vector(img).tolist()
+            getEmbVector = get_embedding_vector(img)
+            embVector = getEmbVector.tolist()
         except TypeError:
-            response.status_code = status.HTTP_404_NOT_FOUND
-            return {"error": "No face found in image!"}
+            response.status_code = status.HTTP_400_BAD_REQUEST
+            return {"code": "NO_DETECTION", "message": "NO FACE FOUND IN IMAGE"}
+
         except Exception as err:
-            response.status_code = status.HTTP_406_NOT_ACCEPTABLE
+            response.status_code = status.HTTP_400_BAD_REQUEST
             return {
-                "error": "Error in generating vector, Please make sure image have exact one Face!",
-                "system_message": err
+                "code": "INVALID_RAW_IMAGE",
+                "message": "UNABE TO DECODE IMAGE FILE",
             }
 
-        return {
-            "vector_embeding": emb_vector
-        }
+        return {"vector_embeding": embVector}
 
 
+# port = int(os.environ.get("PORT"))
 serve.run(faceEmbedingGenModel.bind(), host="0.0.0.0", port=8080)

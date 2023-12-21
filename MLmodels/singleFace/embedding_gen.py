@@ -224,12 +224,6 @@ def getLetterBoxFaceEmbeddingVector(cropped_image, prototxt_model, caffe_model, 
     return embedding_vector
 
 def get_embedding_vector(image):
-    # if os.path.exists(args.image_path):
-    #     image = cv2.imread(args.image_path)
-    # else:
-    #     image = args.image_path
-    # print("image" ,type(image))
-    
     bbox_info = run_yolo_model(image, f"{YOLO_DIR_PATH}/yolov5s_0.0.18.onnx")
     
     face_crop = get_face_crops(bbox_info[0, :4], image)
@@ -239,26 +233,3 @@ def get_embedding_vector(image):
         f"{YOLO_DIR_PATH}/mobileFacenet/MobileFaceNet.caffemodel"
     )
     return embedding_vector
-    
-
-# def parse_args():
-#     """change the default paths to the models below and give the image path at run time 
-
-#     Returns:
-#         _type_: _description_
-#     """
-#     parser = argparse.ArgumentParser(description = "given an image path, it computes the embedding vector")
-#     # parser.add_argument("--yolo-weight", default = f"{YOLO_DIR_PATH}/yolov5s_0.0.18.onnx", help = "path to yolo model weight")
-#     # parser.add_argument("--prototxt", default = f"{YOLO_DIR_PATH}/mobileFacenet/modifiedFacenet.prototxt", help = "path to prototxt model weight")
-#     # parser.add_argument("--caffe", default = f"{YOLO_DIR_PATH}/mobileFacenet/MobileFaceNet.caffemodel", help = "path to caffe model weight")
-#     parser.add_argument("--image-path", default = "", help = "path to the image")
-#     args = parser.parse_args()
-#     return args
-
-# if __name__ == "__main__":
-#     global args
-#     args = parse_args()
-#     print(args)
-#     emb_vector = get_embedding_vector(args)
-#     np.save("file", emb_vector)
-
